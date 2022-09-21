@@ -1,0 +1,12 @@
+name: scanpy_qc
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - scanpy 
+  - scrublet
+  - leidenalg
+  - seaborn
+  - gseapy
+  - harmonypy
+  

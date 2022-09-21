@@ -1,16 +1,18 @@
-#specify the minimum version of snakemake to insure that all functionalities work
+
 from snakemake.utils import min_version
 min_version("7.0")
 
-# choose which config file to use
-configfile: "configs/config.yaml"
-
-# use conda environments set in each specific rule
-# this way you don't have to specify --use_conda each time you run the pipeline
-if 'use_conda' in config and config['use_conda']:
-    workflow.use_conda = True
+configfile: "config/config.yaml"
 
 # define which output files you would like to generate
-# can also be specified in the CL but that can become quite a hassle with many files
 rule all:
     input:
+        'data/sample1.h5ad'
+
+
+module download_data:
+    snakefile: "rules/download_data.smk"
+    config: config
+
+use rule * from download_data as dwn_*
+

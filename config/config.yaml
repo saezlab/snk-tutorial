@@ -1,0 +1,6 @@
+project: 'snk-tutorial'
+
+QC:
+  'min_gene': 200
+  'min_cells': 3
+  'max_pct_mt': 5
