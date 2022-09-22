@@ -1,6 +1,8 @@
 # %%
 import scanpy as sc
 import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
 
 # %%
 if 'snakemake' in locals():
@@ -22,6 +24,12 @@ for i in range(len(filepaths)):
 # Merge objects and delete list
 adata = adatas[0].concatenate(adatas[1:], join='outer')
 del adatas
+
+#clean adata (-> else cannot write to file)
+mt_columns = [x.startswith('mt') for x in adata.var.columns.to_list()]
+col = adata.var.columns[mt_columns].to_list()
+adata.var = adata.var.drop(col, axis = 1)
+adata.var['mt'] = adata.var_names.str.startswith('mt-')
 
 print('Merged samples')
 print(adata)
@@ -51,13 +59,32 @@ sc.tl.leiden(adata)
 
 # %%
 if 'snakemake' in locals():
-    print('Saved data to file: {0}'.format(snakemake.output[0]))
+
+    #clean adata.var
+    #remove duplicate columns
+    gene_index = pd.Series(adata.var.columns).str.contains('gene_ids').tolist()
+    genes = adata.var.loc[:,gene_index]
+    temp = adata.var.loc[:,np.invert(gene_index)]
+
+    type_index = pd.Series(temp.columns).str.contains('feature_types').tolist()
+    exp_type = temp.loc[:,type_index]
+    temp = temp.loc[:,np.invert(type_index)]
+
+    temp["gene_ids"] = [row[pd.Series(row).str.contains('ENS').tolist().index(True)] for _, row in genes.iterrows()]
+
+
+    #fill nan with 0s
+    adata.var = temp.fillna(0)
+    adata.var = adata.var.drop(["mt","highly_variable"],axis=1)
+
     adata.write(snakemake.output[0])
+    
+    print('Saved data to file: {0}'.format(snakemake.output[0]))
 
 # %%
 fig, axes = plt.subplots(1,3,figsize = (15, 5))
 axes = axes.flatten()
-fig.suptitle('UMAP mbedding', fontsize=14)
+fig.suptitle('UMAP embedding', fontsize=14)
 
 sc.pl.umap(adata, color='leiden', ax = axes[0], show = False)
 sc.pl.umap(adata, color='CST3', ax = axes[1], show = False)
@@ -68,7 +95,7 @@ plt.tight_layout()
 
 if 'snakemake' in locals():
     print('Saved plot to file: {0}'.format(snakemake.output[1]))
-    plt.savefig(snakemake.output[0], dpi=300)
+    plt.savefig(snakemake.output[1], dpi=300)
 
 
 # %%

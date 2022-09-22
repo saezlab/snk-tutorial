@@ -40,7 +40,7 @@ adata.var['mt'] = adata.var_names.str.startswith('mt-')
 sc.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
 
 adata = adata[adata.obs.n_genes_by_counts < 2500, :]
-adata = adata[adata.obs.pct_counts_mt < 5, :]
+adata = adata[adata.obs.pct_counts_mt < QC_params['max_pct_mt'], :]
 
 # %%
 sc.pp.normalize_total(adata, target_sum=1e4)
