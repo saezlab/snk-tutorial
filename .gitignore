@@ -117,5 +117,6 @@ dmypy.json
 .snakemake/
 
 #results and data
-resuts/
+results/
 data/
+.DS_Store
